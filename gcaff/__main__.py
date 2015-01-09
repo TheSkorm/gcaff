@@ -20,7 +20,7 @@ import os
 import shutil
 import socket
 import tempfile
-
+import sys
 import gtk
 
 from . import gpg
@@ -60,17 +60,30 @@ def run_error(text, secondary_text):
     window.set_property('secondary-text', secondary_text)
     window.show_all()
     gtk.main()
-
+    sys.exit()
 
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        '--keyring', type=argparse.FileType(), required=True,
+        '--keyring', type=argparse.FileType(), required=False,
         help='keyring containing keys to be signed')
     parser.add_argument('--logging', default='WARNING', help='set log level')
 
     args = parser.parse_args()
-
+    if not args.keyring:
+        dialog = gtk.FileChooserDialog("Open party keyring",None,gtk.FILE_CHOOSER_ACTION_OPEN, (gtk.STOCK_CANCEL, gtk.RESPONSE_CANCEL, gtk.STOCK_OPEN, gtk.RESPONSE_OK))
+        dialog.set_default_response(gtk.RESPONSE_OK)
+        response = dialog.run()
+        if response == gtk.RESPONSE_OK:
+            try:
+                args.keyring = open(dialog.get_filename())
+            except:
+                run_error('Could not open file', "For some reason I couldn't open this file")
+        elif response == gtk.RESPONSE_CANCEL:
+            sys.exit()
+        else:
+            run_error('Could not open file', "For some reason I couldn't open this file")
+        dialog.destroy()
     level = getattr(logging, args.logging.upper(), 'WARNING')
     logging.basicConfig(level=level)
 
