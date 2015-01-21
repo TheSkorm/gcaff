@@ -58,12 +58,15 @@ class SigningAssistant(gtk.Assistant):
             self.on_signing_keys_changed
         )
 
-        keys = (
+        keys = [
             key for key in tmpgpg.list_keys()
             if key not in signing_keys
-        )
+        ]
 
         self.uid_selectors = []
+        
+        keys.sort(key=lambda a: a.fingerprint[-8:])
+        
         for key in keys:
             uid_selector = UidSelector(key)
             self.append_page(uid_selector)
